@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import 'SharedPreferences.dart';
 
 class EditNote extends StatefulWidget {
   EditNote({this.productList, this.nota});
@@ -84,15 +87,12 @@ class _EditNoteState extends State<EditNote> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            if (notaIndex == null) {
-              if (_textControl.text.isNotEmpty) {
-                productList.add(_textControl.text);
-              }
-            } else {
+          onPressed: () async {
+            if (_textControl.text.isNotEmpty) {
               productList[notaIndex] = _textControl.value.text;
+              await writeData(productList);
+              Navigator.pop(context);
             }
-            Navigator.pop(context);
           },
           child: Icon(Icons.save),
         ),
@@ -136,11 +136,12 @@ class _EditNoteState extends State<EditNote> {
                     child: Text("Adicionar"),
                     color: CupertinoColors.activeBlue,
                     borderRadius: BorderRadius.circular(35.00),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_textControl.text.isNotEmpty) {
-                        productList.add(_textControl.text);
+                        productList[notaIndex] = _textControl.value.text;
+                        await writeData(productList);
+                        Navigator.pop(context);
                       }
-                      Navigator.pop(context);
                     }),
               ),
             ),

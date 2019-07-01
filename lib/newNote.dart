@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'confirmDialog.dart';
 import 'dart:io' show Platform;
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import 'SharedPreferences.dart';
 
 class NewNote extends StatefulWidget {
   NewNote({this.productList});
@@ -17,6 +19,7 @@ class _NewNoteState extends State<NewNote> {
   _NewNoteState({this.productList});
 
   final _textControl = TextEditingController();
+
 
   String appName = "ToDo";
 
@@ -77,6 +80,7 @@ class _NewNoteState extends State<NewNote> {
           onPressed: () {
             if (_textControl.text.isNotEmpty) {
               productList.add(_textControl.text);
+              writeData(productList);
               Navigator.pop(context);
             } else {
               _ScaffoldKey.currentState.showSnackBar(
@@ -93,6 +97,7 @@ class _NewNoteState extends State<NewNote> {
 
     if (Platform.isIOS)
       return Scaffold(
+        key: _ScaffoldKey,
         appBar: CupertinoNavigationBar(
           middle: Text("$appName"),
           trailing: FlatButton(
@@ -131,8 +136,16 @@ class _NewNoteState extends State<NewNote> {
                     onPressed: () {
                       if (_textControl.text.isNotEmpty) {
                         productList.add(_textControl.text);
+                        Navigator.pop(context);
+                      } else {
+                        _ScaffoldKey.currentState.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                "Campo vazio, digite algo para salvar!"),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
                       }
-                      Navigator.pop(context);
                     }),
               ),
             ),

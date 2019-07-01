@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import './editNote.dart';
-import './confirmDialog.dart';
-import './newNote.dart';
 import 'dart:io' show Platform;
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import './confirmDialog.dart';
+import './editNote.dart';
+import './newNote.dart';
+import 'SharedPreferences.dart';
 
 class ProductManager extends StatefulWidget {
   final String startingProduct;
@@ -14,13 +17,18 @@ class ProductManager extends StatefulWidget {
 }
 
 class _ProductManagerState extends State<ProductManager> {
-  final List<String> products = List();
+  List<String> products = List();
   String appTitle = "ToDo";
 
-  _ProductManagerState();
+  void initList() async {
+    products = await readData();
+    setState(() {});
+  }
 
+  GlobalKey<ScaffoldState> _ScaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
+    initList();
     super.initState();
   }
 
@@ -29,6 +37,7 @@ class _ProductManagerState extends State<ProductManager> {
     ///PARA ANDROID
     if (Platform.isAndroid) {
       return Scaffold(
+        key: _ScaffoldKey,
         appBar: AppBar(
           title: Text("$appTitle"),
           centerTitle: true,
@@ -46,42 +55,45 @@ class _ProductManagerState extends State<ProductManager> {
         ),
         body: products.length == 0
             ? Center(
-                child: Text("Não há notas"),
-              )
+          child: Text("Não há notas"),
+        )
             : ListView.separated(
-                separatorBuilder: (context, index) => Divider(
-                      color: index % 2 == 0 ? Colors.black : Colors.orange,
-                      indent: 20,
-                    ),
-                padding: const EdgeInsets.all(0.0),
-                shrinkWrap: true,
-                itemCount: products.length,
-                itemBuilder: (BuildContext context, int index) => ListTile(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditNote(
-                                nota: index,
-                                productList: products,
-                              ),
-                            ));
-                      },
-                      trailing: IconButton(
-                          icon: Icon(Icons.delete_outline),
-                          onPressed: () {
-                            confirmDialog(context, "Deseja deleter está nota",
-                                    products[index])
-                                .then((bool) {
-                              if (bool) {
-                                setState(() {
-                                  products.removeAt(index);
-                                });
-                              }
-                            });
-                          }),
-                      title: Text("${products[index]}"),
-                    )),
+            separatorBuilder: (context, index) => Divider(
+              color: index % 2 == 0 ? Colors.black : Colors.orange,
+              indent: 20,
+            ),
+            padding: const EdgeInsets.all(0.0),
+            shrinkWrap: true,
+            itemCount: products.length,
+            itemBuilder: (BuildContext context, int index) => ListTile(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditNote(
+                        nota: index,
+                        productList: products,
+                      ),
+                    ));
+              },
+              trailing: IconButton(
+                  icon: Icon(Icons.delete_outline),
+                  onPressed: () {
+                    confirmDialog(context, "Deseja deleter está nota",
+                        products[index])
+                        .then((bool) {
+                      if (bool) {
+                        setState(() {
+                          products.removeAt(index);
+                          writeData(products);
+                          _ScaffoldKey.currentState.showSnackBar(
+                              SnackBar(content: Text("Nota deletada")));
+                        });
+                      }
+                    });
+                  }),
+              title: Text("${products[index]}"),
+            )),
       );
     }
 
